@@ -102,7 +102,7 @@ resource "aws_lb_target_group" "ecs" {
   vpc_id      = var.vpc_id
 
   health_check {
-    path                = "/"
+    path                = var.ecs_health_check_path
     healthy_threshold   = 2
     unhealthy_threshold = 3
     interval            = 30

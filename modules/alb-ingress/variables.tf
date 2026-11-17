@@ -65,6 +65,12 @@ variable "ecs_port" {
   default     = 3000
 }
 
+variable "ecs_health_check_path" {
+  type        = string
+  description = "Path the ECS target group health check requests. Must return 200-399 without credentials. Defaults to \"/\", which returns a 302 for unauthenticated users; set a dedicated path such as /healthcheck to keep health checks out of app logs and to allow HTTP basic auth on the rest of the site."
+  default     = "/"
+}
+
 variable "ecs_traffic_weight" {
   type        = number
   description = "Percentage of HTTPS traffic sent to ECS (0-100) while legacy_ec2 is set. The EC2 target group gets the remainder. Ignored when legacy_ec2 is null."
