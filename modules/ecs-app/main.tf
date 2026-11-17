@@ -189,10 +189,13 @@ resource "aws_ecs_task_definition" "web" {
           name            = "web"
           image           = local.image
           essential       = true
-          portMappings    = [{ containerPort = var.web_port, protocol = "tcp" }]
+          portMappings    = [{ containerPort = var.web_port, hostPort = var.web_port, protocol = "tcp" }]
           linuxParameters = { initProcessEnabled = true }
           environment     = local.web_environment
           secrets         = local.secrets
+          mountPoints     = []
+          systemControls  = []
+          volumesFrom     = []
           logConfiguration = {
             logDriver = "awslogs"
             options = {
@@ -210,11 +213,16 @@ resource "aws_ecs_task_definition" "web" {
     [
       for s in var.sidecars : merge(
         {
-          name      = s.name
-          image     = s.image
-          essential = false
-          cpu       = s.cpu
-          memory    = s.memory
+          name           = s.name
+          image          = s.image
+          essential      = false
+          environment    = []
+          mountPoints    = []
+          portMappings   = []
+          systemControls = []
+          volumesFrom    = []
+          cpu            = s.cpu
+          memory         = s.memory
           logConfiguration = {
             logDriver = "awslogs"
             options = {
@@ -250,6 +258,10 @@ resource "aws_ecs_task_definition" "sidekiq" {
       linuxParameters = { initProcessEnabled = true }
       environment     = local.sidekiq_environment
       secrets         = local.secrets
+      mountPoints     = []
+      portMappings    = []
+      systemControls  = []
+      volumesFrom     = []
       logConfiguration = {
         logDriver = "awslogs"
         options = {

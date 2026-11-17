@@ -28,8 +28,7 @@ module "alb" {
   alb_domain            = var.alb_domain
   subject_alt_names     = var.subject_alt_names
   wildcard_domain       = var.wildcard_domain
-  ec2_instance_id       = var.ec2_instance_id
-  ec2_security_group_id = var.ec2_security_group_id
+  legacy_ec2            = null
   ecs_target_group_name = "unicycling-reg-${var.environment}-ecs"
   ecs_traffic_weight    = var.ecs_traffic_weight
 }

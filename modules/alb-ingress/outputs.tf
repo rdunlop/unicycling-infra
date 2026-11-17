@@ -9,8 +9,8 @@ output "target_group_arn" {
 }
 
 output "ec2_target_group_arn" {
-  description = "ARN of the legacy EC2 target group"
-  value       = aws_lb_target_group.app.arn
+  description = "ARN of the legacy EC2 target group, or null when legacy_ec2 is not set"
+  value       = one(aws_lb_target_group.legacy_ec2[*].arn)
 }
 
 output "alb_dns_name" {

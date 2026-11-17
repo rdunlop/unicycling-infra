@@ -45,14 +45,13 @@ variable "wildcard_domain" {
   default     = null
 }
 
-variable "ec2_instance_id" {
-  type        = string
-  description = "Existing EC2 instance to keep in the legacy EC2 target group. Leave the EC2 weight at 0 once cutover is complete."
-}
-
-variable "ec2_security_group_id" {
-  type        = string
-  description = "Existing EC2 security group. A rule allowing port 80 from the ALB is appended to it."
+variable "legacy_ec2" {
+  type = object({
+    instance_id       = string
+    security_group_id = string
+  })
+  description = "Optional. Set while a legacy EC2 app is still serving traffic during cutover: creates an EC2 target group with that instance, and appends an ALB ingress rule to its security group. Leave null once EC2 is gone; the module then creates no EC2 resources and forwards all traffic to ECS."
+  default     = null
 }
 
 variable "ecs_target_group_name" {
@@ -68,7 +67,7 @@ variable "ecs_port" {
 
 variable "ecs_traffic_weight" {
   type        = number
-  description = "Percentage of HTTPS traffic sent to ECS (0-100). The EC2 target group gets the remainder."
+  description = "Percentage of HTTPS traffic sent to ECS (0-100) while legacy_ec2 is set. The EC2 target group gets the remainder. Ignored when legacy_ec2 is null."
   default     = 0
 
   validation {

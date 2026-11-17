@@ -37,13 +37,14 @@ resource "aws_security_group" "alb" {
   }
 }
 
-# Appends an ingress rule to the existing EC2 security group. Does not replace the group.
+# Only while legacy_ec2 is set. Appends an ingress rule to the existing EC2 security group.
 resource "aws_security_group_rule" "ec2_from_alb" {
+  count                    = var.legacy_ec2 == null ? 0 : 1
   type                     = "ingress"
   from_port                = 80
   to_port                  = 80
   protocol                 = "tcp"
-  security_group_id        = var.ec2_security_group_id
+  security_group_id        = var.legacy_ec2 == null ? "" : var.legacy_ec2.security_group_id
   source_security_group_id = aws_security_group.alb.id
   description              = "Allow HTTP from ${var.environment} ALB"
 }
@@ -61,8 +62,9 @@ resource "aws_lb" "app" {
   }
 }
 
-# Legacy EC2 target group.
-resource "aws_lb_target_group" "app" {
+# Legacy EC2 target group. Only while legacy_ec2 is set.
+resource "aws_lb_target_group" "legacy_ec2" {
+  count    = var.legacy_ec2 == null ? 0 : 1
   name     = "${var.app_name}-${var.environment}"
   port     = 80
   protocol = "HTTP"
@@ -84,9 +86,10 @@ resource "aws_lb_target_group" "app" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "app" {
-  target_group_arn = aws_lb_target_group.app.arn
-  target_id        = var.ec2_instance_id
+resource "aws_lb_target_group_attachment" "legacy_ec2" {
+  count            = var.legacy_ec2 == null ? 0 : 1
+  target_group_arn = aws_lb_target_group.legacy_ec2[0].arn
+  target_id        = var.legacy_ec2 == null ? "" : var.legacy_ec2.instance_id
   port             = 80
 }
 
@@ -138,13 +141,16 @@ resource "aws_lb_listener" "https" {
   default_action {
     type = "forward"
     forward {
-      target_group {
-        arn    = aws_lb_target_group.app.arn
-        weight = 100 - var.ecs_traffic_weight
+      dynamic "target_group" {
+        for_each = var.legacy_ec2 == null ? [] : [1]
+        content {
+          arn    = aws_lb_target_group.legacy_ec2[0].arn
+          weight = 100 - var.ecs_traffic_weight
+        }
       }
       target_group {
         arn    = aws_lb_target_group.ecs.arn
-        weight = var.ecs_traffic_weight
+        weight = var.legacy_ec2 == null ? 100 : var.ecs_traffic_weight
       }
     }
   }

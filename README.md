@@ -47,6 +47,16 @@ terraform fmt -check -recursive
 
 ## Status
 
-v0.1.0 is a straight extraction of the unicycling-registration Terraform. It has no behavior changes. Continuing work
-(CI scripts, release hooks, `skip_destroy`, removing `ignore_changes` on task definitions) is planned in later
-versions.
+v0.2.0 changes two things from v0.1.0:
+
+- `alb-ingress`: the legacy EC2 target group, its instance attachment and its security group rule are now optional
+  (`legacy_ec2`). Pass `null` once EC2 is gone. The listener then forwards 100% to ECS. Apps still on EC2 pass the
+  instance and security group IDs and keep the weighted split. Note that the attachment is created by Terraform, not
+  imported, because `aws_lb_target_group_attachment` does not support import. Re-registering an existing target is a
+  no-op in AWS, so the plan shows "create" harmlessly on first adoption.
+- `ecs-app`: container definitions now include the empty `mountPoints`, `portMappings`, `systemControls`, `volumesFrom`
+  and `environment` fields, and `hostPort` on the web port, which ECS fills in on its own. Without them, every plan
+  shows a task-definition replacement.
+
+Continuing work (CI scripts, release hooks, `skip_destroy`, removing `ignore_changes` on task definitions) is planned
+in later versions.
