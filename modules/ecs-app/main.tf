@@ -90,7 +90,10 @@ resource "aws_security_group_rule" "database_from_ecs" {
   description              = "PostgreSQL from ECS tasks (${var.environment})"
 }
 
+# Only for apps that use the shared ElastiCache cluster (redis_security_group_id set).
+# Apps without Redis pass null and get no rule.
 resource "aws_security_group_rule" "redis_from_ecs" {
+  count                    = var.redis_security_group_id == null ? 0 : 1
   type                     = "ingress"
   from_port                = 6379
   to_port                  = 6379
@@ -98,6 +101,12 @@ resource "aws_security_group_rule" "redis_from_ecs" {
   security_group_id        = var.redis_security_group_id
   source_security_group_id = aws_security_group.ecs_tasks.id
   description              = "Redis from ECS tasks (${var.environment})"
+}
+
+# Callers that already had this rule (registration, rulebook) keep their state address.
+moved {
+  from = aws_security_group_rule.redis_from_ecs
+  to   = aws_security_group_rule.redis_from_ecs[0]
 }
 
 # ---- IAM ----

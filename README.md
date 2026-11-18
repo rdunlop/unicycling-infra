@@ -47,6 +47,12 @@ terraform fmt -check -recursive
 
 ## Status
 
+Unreleased (not yet tagged):
+
+- `ecs-app`: `redis_security_group_id` is optional. Pass `null` for apps that do not use the shared ElastiCache
+  cluster, and no Redis ingress rule is created. The rule now has `count`; a `moved` block keeps the state address for
+  apps that already have it, so bumping the ref does not plan a replacement.
+
 v0.2.0 changes two things from v0.1.0:
 
 - `alb-ingress`: the legacy EC2 target group, its instance attachment and its security group rule are now optional

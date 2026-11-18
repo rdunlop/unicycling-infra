@@ -41,7 +41,8 @@ variable "database_security_group_id" {
 
 variable "redis_security_group_id" {
   type        = string
-  description = "Security group of the shared ElastiCache cluster. Gets a port 6379 ingress rule from the tasks."
+  description = "Optional. Security group of the shared ElastiCache cluster. Gets a port 6379 ingress rule from the tasks. Pass null for apps that do not use Redis."
+  default     = null
 }
 
 variable "ecr_repository_url" {
