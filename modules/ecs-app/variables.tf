@@ -71,9 +71,15 @@ variable "web_memory" {
   description = "Fargate memory (MiB) for the web task."
 }
 
+variable "sidekiq_enabled" {
+  type        = bool
+  description = "Create the sidekiq log group, task definition and service. Set false for apps without a sidekiq worker. Defaults to true, so existing callers are unchanged."
+  default     = true
+}
+
 variable "sidekiq_cpu" {
   type        = number
-  description = "Fargate CPU units for the sidekiq task."
+  description = "Fargate CPU units for the sidekiq task. Ignored when sidekiq_enabled is false."
 }
 
 variable "sidekiq_memory" {

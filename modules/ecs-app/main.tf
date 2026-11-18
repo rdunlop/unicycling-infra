@@ -47,6 +47,7 @@ resource "aws_cloudwatch_log_group" "web" {
 }
 
 resource "aws_cloudwatch_log_group" "sidekiq" {
+  count             = var.sidekiq_enabled ? 1 : 0
   name              = "/ecs/${local.name}-sidekiq"
   retention_in_days = var.log_retention_days
   tags              = { Environment = var.environment }
@@ -101,12 +102,6 @@ resource "aws_security_group_rule" "redis_from_ecs" {
   security_group_id        = var.redis_security_group_id
   source_security_group_id = aws_security_group.ecs_tasks.id
   description              = "Redis from ECS tasks (${var.environment})"
-}
-
-# Callers that already had this rule (registration, rulebook) keep their state address.
-moved {
-  from = aws_security_group_rule.redis_from_ecs
-  to   = aws_security_group_rule.redis_from_ecs[0]
 }
 
 # ---- IAM ----
@@ -250,6 +245,7 @@ resource "aws_ecs_task_definition" "web" {
 }
 
 resource "aws_ecs_task_definition" "sidekiq" {
+  count                    = var.sidekiq_enabled ? 1 : 0
   family                   = "${local.name}-sidekiq"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
@@ -274,7 +270,7 @@ resource "aws_ecs_task_definition" "sidekiq" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.sidekiq.name
+          "awslogs-group"         = aws_cloudwatch_log_group.sidekiq[0].name
           "awslogs-region"        = var.region
           "awslogs-stream-prefix" = "sidekiq"
         }
@@ -318,9 +314,10 @@ resource "aws_ecs_service" "web" {
 }
 
 resource "aws_ecs_service" "sidekiq" {
+  count                  = var.sidekiq_enabled ? 1 : 0
   name                   = "${local.name}-sidekiq"
   cluster                = aws_ecs_cluster.app.id
-  task_definition        = aws_ecs_task_definition.sidekiq.arn
+  task_definition        = aws_ecs_task_definition.sidekiq[0].arn
   desired_count          = 0
   launch_type            = "FARGATE"
   enable_execute_command = true

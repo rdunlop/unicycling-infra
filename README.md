@@ -47,11 +47,15 @@ terraform fmt -check -recursive
 
 ## Status
 
-Unreleased (not yet tagged):
+v0.4.0 changes two things from v0.3.0. Both are optional, and the defaults keep the existing behaviour:
 
 - `ecs-app`: `redis_security_group_id` is optional. Pass `null` for apps that do not use the shared ElastiCache
-  cluster, and no Redis ingress rule is created. The rule now has `count`; a `moved` block keeps the state address for
-  apps that already have it, so bumping the ref does not plan a replacement.
+  cluster, and no Redis ingress rule is created.
+- `ecs-app`: `sidekiq_enabled` (default `true`). Set `false` for apps with no sidekiq worker. Then the sidekiq log group,
+  task definition and service are not created, and `sidekiq_service_name` is null.
+
+Both use `count`. `moved.tf` maps the existing addresses to `[0]`, so apps that already have these resources (registration,
+rulebook) keep their state and a ref bump does not plan a replacement.
 
 v0.2.0 changes two things from v0.1.0:
 
